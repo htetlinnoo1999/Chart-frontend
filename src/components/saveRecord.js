@@ -15,6 +15,7 @@ function InsertForm(props) {
     onSuccess: () => {
       queryClient.invalidateQueries("bar");
       queryClient.invalidateQueries("pie");
+      clearStates();
       props.setPage("bar");
     },
   });
