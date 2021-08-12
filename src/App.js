@@ -32,7 +32,7 @@ function App() {
       <QueryClientProvider client={queryClient}>
         {page === "bar" && <BarChart />}
         {page === "pie" && <PieChart />}
-        {page === "form" && <InsertForm />}
+        {page === "form" && <InsertForm setPage={setPage} />}
       </QueryClientProvider>
     </div>
   );

@@ -1,29 +1,41 @@
 import { Form, Button } from "react-bootstrap";
 import { useState } from "react";
-import { useQueryClient } from "react-query";
+import { useQueryClient, useMutation } from "react-query";
 import { saveRecord } from "../chartApi";
 
-function InsertForm() {
-  const [name, setName] = useState("");
-  const [age, setAge] = useState("");
-  const [gender, setGender] = useState(0);
-
+function InsertForm(props) {
+  const empty = {
+    name: "",
+    age: "",
+    gender: "",
+  };
+  const [fields, setFields] = useState(() => empty);
   const queryClient = useQueryClient();
-  const clearStates = () => {
-    setName("");
-    setAge("");
-    setGender("");
-  }
-  const submit = () => {
-    saveRecord({ name, age, gender }).then((res) => {
-      if (res.status === "created") {
-        queryClient.invalidateQueries("bar");
-        queryClient.invalidateQueries("pie");
-        clearStates()
-      }
-    });
+  const { isError, error, mutate } = useMutation(saveRecord, {
+    onSuccess: () => {
+      queryClient.invalidateQueries("bar");
+      queryClient.invalidateQueries("pie");
+      props.setPage("bar");
+    },
+  });
+
+  //fields update function
+  const updateFields = (event) => {
+    const { name, value } = event.target;
+    setFields({ ...fields, [name]: value });
   };
 
+  //clear data after save record
+  const clearStates = () => {
+    setFields(empty);
+  };
+
+  const submit = (event) => {
+    event.preventDefault();
+
+    mutate(fields);
+  };
+  if (isError) return <h1> Something went wrong. Error: {error.message}</h1>;
   return (
     <div className="container width-75">
       <Form id="insert_form">
@@ -31,9 +43,10 @@ function InsertForm() {
           <Form.Label>Name</Form.Label>
           <Form.Control
             type="text"
-            value={name}
+            name="name"
+            value={fields.name}
             placeholder="Eg. John Wick"
-            onChange={(e) => setName(e.target.value)}
+            onChange={updateFields}
           />
         </Form.Group>
 
@@ -41,9 +54,10 @@ function InsertForm() {
           <Form.Label>Age</Form.Label>
           <Form.Control
             type="number"
-            value={age}
+            name="age"
+            value={fields.age}
             placeholder="Eg. 32"
-            onChange={(e) => setAge(e.target.value)}
+            onChange={updateFields}
           />
         </Form.Group>
 
@@ -55,7 +69,7 @@ function InsertForm() {
             type="radio"
             value="0"
             id={`inline-radio-1`}
-            onChange={(e) => setGender(e.target.value)}
+            onChange={updateFields}
           />
           <Form.Check
             inline
@@ -64,7 +78,7 @@ function InsertForm() {
             type="radio"
             value="1"
             id={`inline-radio-2`}
-            onChange={(e) => setGender(e.target.value)}
+            onChange={updateFields}
           />
         </div>
 
